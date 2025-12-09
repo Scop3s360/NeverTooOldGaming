@@ -1,0 +1,149 @@
+extends Control
+
+## Shop screen for unlocking items
+
+const UnlockManager = preload("res://scripts/unlock_manager.gd")
+
+var unlock_manager: UnlockManager
+
+# Item names for display
+var paddle_names = ["Classic", "Neon", "Retro", "Carbon", "Gold"]
+var ball_names = ["Classic", "Glow", "Pixel", "Plasma", "Crystal"]
+var background_names = ["Classic", "Neon Grid", "Starfield", "Abstract", "Sunset"]
+var trail_names = ["None", "Basic", "Particle", "Rainbow"]
+
+func _ready() -> void:
+	unlock_manager = UnlockManager.new()
+	add_child(unlock_manager)
+	unlock_manager.points_changed.connect(_on_points_changed)
+	unlock_manager.item_unlocked.connect(_on_item_unlocked)
+	
+	create_ui()
+
+func create_ui() -> void:
+	"""Create shop UI"""
+	# Background
+	var bg = ColorRect.new()
+	bg.size = Vector2(1920, 1080)
+	bg.color = Color(0.1, 0.1, 0.15)
+	add_child(bg)
+	
+	# Title
+	var title = Label.new()
+	title.position = Vector2(850, 30)
+	title.text = "SHOP"
+	title.add_theme_font_size_override("font_size", 60)
+	add_child(title)
+	
+	# Points display
+	var points_label = Label.new()
+	points_label.name = "PointsLabel"
+	points_label.position = Vector2(800, 110)
+	points_label.text = "Points: %d" % unlock_manager.total_points
+	points_label.add_theme_font_size_override("font_size", 32)
+	points_label.modulate = Color(1.0, 0.8, 0.3)
+	add_child(points_label)
+	
+	# Create shop sections
+	create_shop_section("PADDLES", paddle_names, unlock_manager.PADDLE_COSTS, 
+		unlock_manager.unlocked_paddles, "paddle", Vector2(100, 200))
+	
+	create_shop_section("BALLS", ball_names, unlock_manager.BALL_COSTS,
+		unlock_manager.unlocked_balls, "ball", Vector2(550, 200))
+	
+	create_shop_section("BACKGROUNDS", background_names, unlock_manager.BACKGROUND_COSTS,
+		unlock_manager.unlocked_backgrounds, "background", Vector2(1000, 200))
+	
+	create_shop_section("TRAILS", trail_names, unlock_manager.TRAIL_COSTS,
+		unlock_manager.unlocked_trails, "trail", Vector2(1450, 200))
+	
+	# Back button
+	var back_btn = create_button("BACK", Vector2(810, 950))
+	back_btn.pressed.connect(_on_back_pressed)
+	add_child(back_btn)
+
+func create_shop_section(title: String, item_names: Array, costs: Array, 
+	unlocked: Array, category: String, pos: Vector2) -> void:
+	"""Create a shop section for a category"""
+	# Section title
+	var section_title = Label.new()
+	section_title.position = pos
+	section_title.text = title
+	section_title.add_theme_font_size_override("font_size", 28)
+	add_child(section_title)
+	
+	# Items
+	var item_y = pos.y + 50
+	for i in range(item_names.size()):
+		var item_container = VBoxContainer.new()
+		item_container.position = Vector2(pos.x, item_y)
+		
+		# Item name
+		var name_label = Label.new()
+		name_label.text = item_names[i]
+		name_label.add_theme_font_size_override("font_size", 20)
+		item_container.add_child(name_label)
+		
+		# Status/button
+		if i in unlocked:
+			var owned_label = Label.new()
+			owned_label.text = "OWNED"
+			owned_label.modulate = Color(0.3, 1.0, 0.3)
+			owned_label.add_theme_font_size_override("font_size", 18)
+			item_container.add_child(owned_label)
+		else:
+			var buy_btn = Button.new()
+			buy_btn.text = "Buy: %d pts" % costs[i]
+			buy_btn.size = Vector2(120, 30)
+			buy_btn.add_theme_font_size_override("font_size", 16)
+			buy_btn.pressed.connect(_on_buy_pressed.bind(category, i))
+			
+			# Disable if can't afford
+			if unlock_manager.total_points < costs[i]:
+				buy_btn.disabled = true
+			
+			item_container.add_child(buy_btn)
+		
+		add_child(item_container)
+		item_y += 80
+
+func create_button(text: String, pos: Vector2) -> Button:
+	"""Create a styled button"""
+	var btn = Button.new()
+	btn.text = text
+	btn.position = pos
+	btn.size = Vector2(300, 60)
+	btn.add_theme_font_size_override("font_size", 24)
+	return btn
+
+func _on_buy_pressed(category: String, item_id: int) -> void:
+	"""Attempt to purchase an item"""
+	if unlock_manager.unlock_item(category, item_id):
+		print("Purchased %s %d" % [category, item_id])
+		# Refresh UI
+		refresh_ui()
+	else:
+		print("Cannot afford %s %d" % [category, item_id])
+
+func _on_points_changed(new_total: int) -> void:
+	"""Update points display"""
+	var points_label = get_node_or_null("PointsLabel")
+	if points_label:
+		points_label.text = "Points: %d" % new_total
+
+func _on_item_unlocked(category: String, item_id: int) -> void:
+	"""Handle item unlock"""
+	print("Unlocked %s %d!" % [category, item_id])
+
+func refresh_ui() -> void:
+	"""Refresh the entire UI"""
+	# Clear and recreate
+	for child in get_children():
+		if child != unlock_manager:
+			child.queue_free()
+	
+	await get_tree().process_frame
+	create_ui()
+
+func _on_back_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
