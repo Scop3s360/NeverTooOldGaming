@@ -1,0 +1,12 @@
+<svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Card back with retro pixel pattern -->
+  <rect width="64" height="64" fill="#2a2a4a"/>
+  <rect x="4" y="4" width="56" height="56" fill="#3a3a6a" stroke="#5a5a8a" stroke-width="2"/>
+  
+  <!-- Pixel pattern -->
+  <rect x="16" y="16" width="8" height="8" fill="#7a7aaa"/>
+  <rect x="40" y="16" width="8" height="8" fill="#7a7aaa"/>
+  <rect x="16" y="40" width="8" height="8" fill="#7a7aaa"/>
+  <rect x="40" y="40" width="8" height="8" fill="#7a7aaa"/>
+  <rect x="28" y="28" width="8" height="8" fill="#9a9acc"/>
+</svg>

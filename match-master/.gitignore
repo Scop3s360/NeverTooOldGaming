@@ -1,0 +1,47 @@
+# Godot 4+ specific ignores
+.godot/
+.godot/editor/
+.godot/imported/
+.godot/shader_cache/
+
+# Godot-specific
+*.import
+*.translation
+export_presets.cfg
+export.cfg
+
+# Mono-specific ignores (if using C#)
+.mono/
+data_*/
+mono_crash.*.json
+
+# Build outputs
+builds/
+*.exe
+*.pck
+*.zip
+*.apk
+*.dmg
+*.app
+
+# System/Editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# User data (save files during development)
+# Uncomment if you don't want to track save files
+# *.save
+# user://
+
+# Temporary files
+*.tmp
+*.bak
+*.old
